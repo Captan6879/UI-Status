@@ -1,0 +1,198 @@
+--// Pupakorn UI System with TabBar + Settings + ProfileBar
+local player = game.Players.LocalPlayer
+local players = game:GetService("Players")
+
+-- สร้าง ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SystemUI"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+-- Scale ให้รองรับทุกจอ
+local uiScale = Instance.new("UIScale", screenGui)
+uiScale.Scale = 1
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(1,0,1,0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+mainFrame.Parent = screenGui
+
+-- TabBar ซ้าย
+local tabBar = Instance.new("Frame")
+tabBar.Size = UDim2.new(0,150,1,-60)
+tabBar.Position = UDim2.new(0,0,0,0)
+tabBar.BackgroundColor3 = Color3.fromRGB(21,21,21)
+tabBar.Parent = mainFrame
+
+local tabList = Instance.new("UIListLayout", tabBar)
+tabList.Padding = UDim.new(0,8)
+tabList.FillDirection = Enum.FillDirection.Vertical
+tabList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+tabList.SortOrder = Enum.SortOrder.LayoutOrder
+tabList.VerticalAlignment = Enum.VerticalAlignment.Top
+
+-- Content Panel (ตรงกลาง)
+local contentFrame = Instance.new("Frame")
+contentFrame.Size = UDim2.new(1,-350,1,-60)
+contentFrame.Position = UDim2.new(0,150,0,0)
+contentFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+contentFrame.Parent = mainFrame
+
+-- Settings Panel (ด้านขวา)
+local settingsFrame = Instance.new("Frame")
+settingsFrame.Size = UDim2.new(0,200,1,-60)
+settingsFrame.Position = UDim2.new(1,-200,0,0)
+settingsFrame.BackgroundColor3 = Color3.fromRGB(42,42,42)
+settingsFrame.Parent = mainFrame
+
+-- Profile Bar (ล่าง)
+local profileBar = Instance.new("Frame")
+profileBar.Size = UDim2.new(1,0,0,60)
+profileBar.Position = UDim2.new(0,0,1,-60)
+profileBar.BackgroundColor3 = Color3.fromRGB(28,28,28)
+profileBar.Parent = mainFrame
+
+-- Avatar
+local avatar = Instance.new("ImageLabel")
+avatar.Size = UDim2.new(0,50,0,50)
+avatar.Position = UDim2.new(0,10,0.5,-25)
+avatar.BackgroundTransparency = 1
+avatar.Image = "rbxthumb://type=AvatarHeadShot&id="..player.UserId.."&w=150&h=150"
+avatar.Parent = profileBar
+
+-- Name Label
+local nameLabel = Instance.new("TextLabel")
+nameLabel.Size = UDim2.new(0,300,1,0)
+nameLabel.Position = UDim2.new(0,70,0,0)
+nameLabel.BackgroundTransparency = 1
+nameLabel.Text = player.Name.." | LV.24 Warrior | Gold: 2,500"
+nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+nameLabel.Font = Enum.Font.GothamBold
+nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+nameLabel.TextSize = 16
+nameLabel.Parent = profileBar
+
+-- ฟังก์ชันสร้างปุ่ม Tab
+local function createTab(name)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1,-20,0,40)
+    btn.Text = name
+    btn.Font = Enum.Font.GothamBold
+    btn.TextColor3 = Color3.fromRGB(200,200,255)
+    btn.BackgroundColor3 = Color3.fromRGB(50,50,70)
+    btn.Parent = tabBar
+
+    local corner = Instance.new("UICorner", btn)
+    corner.CornerRadius = UDim.new(0,8)
+
+    btn.MouseButton1Click:Connect(function()
+        for _,child in pairs(contentFrame:GetChildren()) do
+            if child:IsA("Frame") then child.Visible = false end
+        end
+        local target = contentFrame:FindFirstChild(name.."Page")
+        if target then target.Visible = true end
+    end)
+end
+
+-- สร้าง Tab หลัก
+createTab("Status")
+createTab("Teleport")
+createTab("Inventory")
+createTab("Party")
+
+-- Page ตัวอย่าง
+local statusPage = Instance.new("Frame")
+statusPage.Name = "StatusPage"
+statusPage.Size = UDim2.new(1,0,1,0)
+statusPage.BackgroundTransparency = 1
+statusPage.Parent = contentFrame
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Text = "STATUS: HP 75%, ST 40%, Armor 90%"
+statusLabel.Size = UDim2.new(1,0,0,50)
+statusLabel.TextColor3 = Color3.fromRGB(255,255,255)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.TextSize = 18
+statusLabel.Parent = statusPage
+
+-- Teleport Page
+local teleportPage = Instance.new("Frame")
+teleportPage.Name = "TeleportPage"
+teleportPage.Size = UDim2.new(1,0,1,0)
+teleportPage.BackgroundTransparency = 1
+teleportPage.Visible = false
+teleportPage.Parent = contentFrame
+
+local tpLabel = Instance.new("TextLabel")
+tpLabel.Text = "TELEPORT MENU"
+tpLabel.Size = UDim2.new(1,0,0,40)
+tpLabel.TextColor3 = Color3.fromRGB(255,255,255)
+tpLabel.BackgroundTransparency = 1
+tpLabel.Font = Enum.Font.GothamBold
+tpLabel.TextSize = 20
+tpLabel.Parent = teleportPage
+
+local playerList = Instance.new("ScrollingFrame")
+playerList.Size = UDim2.new(1,-20,1,-60)
+playerList.Position = UDim2.new(0,10,0,50)
+playerList.BackgroundTransparency = 1
+playerList.CanvasSize = UDim2.new(0,0,0,0)
+playerList.ScrollBarThickness = 6
+playerList.Parent = teleportPage
+
+local listLayout = Instance.new("UIListLayout", playerList)
+listLayout.Padding = UDim.new(0,5)
+
+-- ฟังก์ชันสร้าง Player Row
+local function addPlayerRow(target)
+    if target == player then return end
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1,-10,0,50)
+    row.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    row.Parent = playerList
+
+    local corner = Instance.new("UICorner", row)
+    corner.CornerRadius = UDim.new(0,10)
+
+    local head = Instance.new("ImageLabel", row)
+    head.Size = UDim2.new(0,40,0,40)
+    head.Position = UDim2.new(0,5,0.5,-20)
+    head.BackgroundTransparency = 1
+    head.Image = "rbxthumb://type=AvatarHeadShot&id="..target.UserId.."&w=150&h=150"
+
+    local label = Instance.new("TextLabel", row)
+    label.Size = UDim2.new(0.5,-60,1,0)
+    label.Position = UDim2.new(0,55,0,0)
+    label.BackgroundTransparency = 1
+    label.Text = target.Name
+    label.TextColor3 = Color3.fromRGB(220,220,255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 16
+
+    local tpBtn = Instance.new("TextButton", row)
+    tpBtn.Size = UDim2.new(0,100,0,30)
+    tpBtn.Position = UDim2.new(1,-110,0.5,-15)
+    tpBtn.Text = "Teleport"
+    tpBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    tpBtn.BackgroundColor3 = Color3.fromRGB(155,77,255)
+    tpBtn.Font = Enum.Font.GothamBold
+    tpBtn.TextSize = 14
+
+    local corner2 = Instance.new("UICorner", tpBtn)
+    corner2.CornerRadius = UDim.new(0,8)
+
+    tpBtn.MouseButton1Click:Connect(function()
+        if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(2,0,0)
+            end
+        end
+    end)
+end
+
+for _,plr in pairs(players:GetPlayers()) do addPlayerRow(plr) end
+players.PlayerAdded:Connect(addPlayerRow)
